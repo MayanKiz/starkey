@@ -1,19 +1,18 @@
 import { Heart, Settings, ArrowLeft } from 'lucide-react';
-import { useRelationshipTimer } from '@/hooks/useRelationshipTimer';
 import { Button } from '@/components/ui/button';
+import { User } from '@/lib/supabase';
 
 interface ChatHeaderProps {
-  currentUser: 'he' | 'she';
+  currentUser: User;
+  chatPartner: User;
   otherTyping: boolean;
   isOtherOnline?: boolean;
   onSettings: () => void;
   onBack: () => void;
 }
 
-const ChatHeader = ({ currentUser, otherTyping, isOtherOnline, onSettings, onBack }: ChatHeaderProps) => {
-  const { days } = useRelationshipTimer();
-  const otherName = currentUser === 'he' ? 'She' : 'He';
-  const otherEmoji = currentUser === 'he' ? '🤍' : '👻';
+const ChatHeader = ({ currentUser, chatPartner, otherTyping, isOtherOnline, onSettings, onBack }: ChatHeaderProps) => {
+  const getInitial = (name: string) => name.charAt(0).toUpperCase();
 
   return (
     <header className="glass sticky top-0 z-50 px-4 py-3 flex items-center justify-between border-b border-glass-border">
@@ -29,14 +28,14 @@ const ChatHeader = ({ currentUser, otherTyping, isOtherOnline, onSettings, onBac
         
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-deep to-blush flex items-center justify-center text-lg">
-              {otherEmoji}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-deep to-blush flex items-center justify-center text-lg font-medium">
+              {getInitial(chatPartner.nickname)}
             </div>
             <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${isOtherOnline ? 'bg-emerald-400' : 'bg-muted-foreground/40'}`} />
           </div>
           
           <div>
-            <h2 className={`font-display text-lg leading-tight ${currentUser === 'he' ? 'text-glow-rose' : 'text-glow-lavender'}`}>{otherName}</h2>
+            <h2 className="font-display text-lg leading-tight text-glow-rose">{chatPartner.nickname}</h2>
             {otherTyping ? (
               <div className="flex items-center gap-1 text-xs text-rose">
                 <span>typing</span>
@@ -54,11 +53,11 @@ const ChatHeader = ({ currentUser, otherTyping, isOtherOnline, onSettings, onBac
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Relationship Timer */}
+        {/* Connection indicator */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lavender/50 border border-lavender-deep/20">
           <Heart className="w-3.5 h-3.5 text-rose fill-rose" />
           <span className="text-xs font-medium text-foreground/70">
-            {days === 0 ? 'Day 1' : `${days} days`}
+            Connected
           </span>
         </div>
 

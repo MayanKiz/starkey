@@ -40,7 +40,9 @@ export type Database = {
           is_read: boolean | null
           message_type: string
           reactions: Json | null
+          receiver_id: string | null
           sender: string
+          sender_id: string | null
           voice_url: string | null
         }
         Insert: {
@@ -50,7 +52,9 @@ export type Database = {
           is_read?: boolean | null
           message_type?: string
           reactions?: Json | null
+          receiver_id?: string | null
           sender: string
+          sender_id?: string | null
           voice_url?: string | null
         }
         Update: {
@@ -60,10 +64,27 @@ export type Database = {
           is_read?: boolean | null
           message_type?: string
           reactions?: Json | null
+          receiver_id?: string | null
           sender?: string
+          sender_id?: string | null
           voice_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       typing_status: {
         Row: {
@@ -80,6 +101,36 @@ export type Database = {
           id?: string
           is_typing?: boolean | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          connection_pin: string
+          created_at: string | null
+          id: string
+          is_online: boolean | null
+          last_seen: string | null
+          login_pin: string
+          nickname: string
+        }
+        Insert: {
+          connection_pin: string
+          created_at?: string | null
+          id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          login_pin: string
+          nickname: string
+        }
+        Update: {
+          connection_pin?: string
+          created_at?: string | null
+          id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          login_pin?: string
+          nickname?: string
         }
         Relationships: []
       }

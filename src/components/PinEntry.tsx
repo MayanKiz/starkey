@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, UserPlus } from 'lucide-react';
 import { usePanicTap } from '@/hooks/usePanicTap';
+import { supabase, User } from '@/lib/supabase';
 
 interface PinEntryProps {
-  onAccess: (user: 'he' | 'she' | 'vault') => void;
+  onAccess: (user: User) => void;
+  onVaultAccess: () => void;
+  onCreateIdentity: () => void;
 }
 
-const PinEntry = ({ onAccess }: PinEntryProps) => {
+const PinEntry = ({ onAccess, onVaultAccess, onCreateIdentity }: PinEntryProps) => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [pressedKey, setPressedKey] = useState<string | number | null>(null);
@@ -24,24 +27,30 @@ const PinEntry = ({ onAccess }: PinEntryProps) => {
     }
   }, [pin]);
 
-  const validatePin = () => {
-    switch (pin) {
-      case '050108':
-        onAccess('he');
-        break;
-      case '100409':
-        onAccess('she');
-        break;
-      case '051009':
-        onAccess('vault');
-        break;
-      default:
-        setError(true);
-        setTimeout(() => {
-          setPin('');
-          setError(false);
-        }, 500);
+  const validatePin = async () => {
+    // Check for vault access (special hardcoded PIN)
+    if (pin === '051009') {
+      onVaultAccess();
+      return;
     }
+
+    // Check if PIN matches any user
+    const { data, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('login_pin', pin)
+      .maybeSingle();
+
+    if (fetchError || !data) {
+      setError(true);
+      setTimeout(() => {
+        setPin('');
+        setError(false);
+      }, 500);
+      return;
+    }
+
+    onAccess(data as User);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -134,6 +143,18 @@ const PinEntry = ({ onAccess }: PinEntryProps) => {
             </button>
           ))}
         </div>
+
+        {/* Create Identity button */}
+        <button
+          onClick={onCreateIdentity}
+          className="w-full mt-6 py-3 flex items-center justify-center gap-2 
+                     border border-lavender-deep/30 rounded-xl text-muted-foreground
+                     hover:text-foreground hover:border-lavender-deep/50 hover:bg-lavender-deep/10
+                     transition-all group"
+        >
+          <UserPlus className="w-4 h-4 group-hover:text-lavender-deep transition-colors" />
+          <span className="text-sm">Create Secret Identity</span>
+        </button>
       </div>
 
       {/* Subtle footer */}

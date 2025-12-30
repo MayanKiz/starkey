@@ -10,15 +10,15 @@ import { toast } from '@/hooks/use-toast';
 interface SettingsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentUser: 'he' | 'she';
+  currentUser: string;
   onNuke: () => Promise<boolean>;
 }
 
 const GRADIENT_PRESETS = [
-  { name: 'Romantic', value: 'linear-gradient(135deg, #E6E6FA, #FFFDD0, #FFD1DC)' },
-  { name: 'Sunset', value: 'linear-gradient(135deg, #FFD1DC, #E6E6FA, #B0E0E6)' },
-  { name: 'Ocean', value: 'linear-gradient(135deg, #B0E0E6, #E6E6FA, #DDA0DD)' },
-  { name: 'Blush', value: 'linear-gradient(180deg, #FFD1DC, #E6E6FA)' },
+  { name: 'Midnight', value: 'linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e)' },
+  { name: 'Deep Space', value: 'linear-gradient(135deg, #0f0f0f, #1a0a2e, #0a1628)' },
+  { name: 'Aurora', value: 'linear-gradient(135deg, #0a0a0a, #1a2a1a, #0a1a2a)' },
+  { name: 'Obsidian', value: 'linear-gradient(180deg, #0a0a0a, #151515)' },
 ];
 
 const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsSheetProps) => {
@@ -35,8 +35,7 @@ const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsShee
       const url = event.target?.result as string;
       await supabase
         .from('chat_settings')
-        .update({ wallpaper_url: url })
-        .eq('id', currentUser);
+        .upsert({ id: currentUser, wallpaper_url: url, updated_at: new Date().toISOString() });
     };
     reader.readAsDataURL(file);
   };
@@ -44,8 +43,7 @@ const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsShee
   const handleGradientSelect = async (gradient: string) => {
     await supabase
       .from('chat_settings')
-      .update({ wallpaper_url: gradient })
-      .eq('id', currentUser);
+      .upsert({ id: currentUser, wallpaper_url: gradient, updated_at: new Date().toISOString() });
   };
 
   const handleNuke = async () => {

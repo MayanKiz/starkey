@@ -3,34 +3,33 @@ import { supabase } from '@/lib/supabase';
 
 interface PresenceEvent {
   type: 'join' | 'leave';
-  user: 'he' | 'she';
+  userId: string;
+  nickname: string;
   timestamp: number;
 }
 
-export const usePresence = (currentUser: 'he' | 'she') => {
+export const usePresence = (currentUserId: string, currentNickname: string, otherUserId: string, otherNickname: string) => {
   const [presenceEvents, setPresenceEvents] = useState<PresenceEvent[]>([]);
   const [isOtherOnline, setIsOtherOnline] = useState(false);
-  
-  const otherUser = currentUser === 'he' ? 'she' : 'he';
   
   const addEvent = useCallback((event: PresenceEvent) => {
     setPresenceEvents(prev => {
       const newEvents = [...prev, event];
-      // Keep only last 5 events
       return newEvents.slice(-5);
     });
     
-    // Auto-remove event after 4 seconds
     setTimeout(() => {
       setPresenceEvents(prev => prev.filter(e => e.timestamp !== event.timestamp));
     }, 4000);
   }, []);
 
   useEffect(() => {
-    const channel = supabase.channel('presence-room', {
+    const roomKey = [currentUserId, otherUserId].sort().join('-');
+    
+    const channel = supabase.channel(`presence-${roomKey}`, {
       config: {
         presence: {
-          key: currentUser,
+          key: currentUserId,
         },
       },
     });
@@ -38,24 +37,26 @@ export const usePresence = (currentUser: 'he' | 'she') => {
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        setIsOtherOnline(!!state[otherUser]?.length);
+        setIsOtherOnline(!!state[otherUserId]?.length);
       })
       .on('presence', { event: 'join' }, ({ key }) => {
-        if (key === otherUser) {
+        if (key === otherUserId) {
           setIsOtherOnline(true);
           addEvent({
             type: 'join',
-            user: otherUser,
+            userId: otherUserId,
+            nickname: otherNickname,
             timestamp: Date.now(),
           });
         }
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
-        if (key === otherUser) {
+        if (key === otherUserId) {
           setIsOtherOnline(false);
           addEvent({
             type: 'leave',
-            user: otherUser,
+            userId: otherUserId,
+            nickname: otherNickname,
             timestamp: Date.now(),
           });
         }
@@ -63,7 +64,8 @@ export const usePresence = (currentUser: 'he' | 'she') => {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            user: currentUser,
+            userId: currentUserId,
+            nickname: currentNickname,
             online_at: new Date().toISOString(),
           });
         }
@@ -72,7 +74,7 @@ export const usePresence = (currentUser: 'he' | 'she') => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, otherUser, addEvent]);
+  }, [currentUserId, otherUserId, currentNickname, otherNickname, addEvent]);
 
   const dismissEvent = useCallback((timestamp: number) => {
     setPresenceEvents(prev => prev.filter(e => e.timestamp !== timestamp));
