@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Trash2, Image, Palette } from 'lucide-react';
+import { Trash2, Image, Palette, Ghost, Bell } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/lib/supabase';
+import { isGhostModeEnabled, setGhostMode } from '@/lib/notifications';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -20,12 +22,12 @@ const GRADIENT_PRESETS = [
 
 const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsSheetProps) => {
   const [confirmNuke, setConfirmNuke] = useState(false);
+  const [ghostMode, setGhostModeState] = useState(isGhostModeEnabled());
 
   const handleWallpaperUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // For demo, we'll just use a data URL
     const reader = new FileReader();
     reader.onload = async (event) => {
       const url = event.target?.result as string;
@@ -55,14 +57,44 @@ const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsShee
     }
   };
 
+  const handleGhostModeToggle = (enabled: boolean) => {
+    setGhostMode(enabled);
+    setGhostModeState(enabled);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="glass border-l border-glass-border">
+      <SheetContent className="glass border-l border-glass-border overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="font-display text-xl">Settings</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Ghost Mode Section */}
+          <div className="p-4 rounded-2xl bg-muted/30 border border-glass-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Ghost className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Ghost Mode</h4>
+                  <p className="text-xs text-muted-foreground">Disable all notifications</p>
+                </div>
+              </div>
+              <Switch
+                checked={ghostMode}
+                onCheckedChange={handleGhostModeToggle}
+              />
+            </div>
+          </div>
+
+          {/* Notifications Info */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Bell className="w-3.5 h-3.5" />
+            <span>Notifications appear as bank alerts for privacy</span>
+          </div>
+
           {/* Wallpaper Section */}
           <div>
             <h3 className="text-sm font-medium text-foreground/80 mb-3 flex items-center gap-2">

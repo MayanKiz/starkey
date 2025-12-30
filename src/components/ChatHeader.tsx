@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 interface ChatHeaderProps {
   currentUser: 'he' | 'she';
   otherTyping: boolean;
+  isOtherOnline?: boolean;
   onSettings: () => void;
   onBack: () => void;
 }
 
-const ChatHeader = ({ currentUser, otherTyping, onSettings, onBack }: ChatHeaderProps) => {
+const ChatHeader = ({ currentUser, otherTyping, isOtherOnline, onSettings, onBack }: ChatHeaderProps) => {
   const { days } = useRelationshipTimer();
   const otherName = currentUser === 'he' ? 'She' : 'He';
   const otherEmoji = currentUser === 'he' ? '🤍' : '👻';
@@ -31,7 +32,7 @@ const ChatHeader = ({ currentUser, otherTyping, onSettings, onBack }: ChatHeader
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-deep to-blush flex items-center justify-center text-lg">
               {otherEmoji}
             </div>
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-background" />
+            <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${isOtherOnline ? 'bg-emerald-400' : 'bg-muted-foreground/40'}`} />
           </div>
           
           <div>
@@ -46,7 +47,7 @@ const ChatHeader = ({ currentUser, otherTyping, onSettings, onBack }: ChatHeader
                 </span>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">Online</p>
+              <p className="text-xs text-muted-foreground">{isOtherOnline ? 'Online' : 'Offline'}</p>
             )}
           </div>
         </div>
