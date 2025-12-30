@@ -1,5 +1,5 @@
 import { Clock, Check, AlertCircle, RefreshCw } from 'lucide-react';
-import type { PendingMessage } from '@/lib/messageQueue';
+import type { PendingMessage } from '@/hooks/useMessageQueue';
 
 interface PendingMessageBubbleProps {
   message: PendingMessage;

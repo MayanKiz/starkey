@@ -2,7 +2,8 @@ import { X } from 'lucide-react';
 
 interface PresenceEvent {
   type: 'join' | 'leave';
-  user: 'he' | 'she';
+  userId: string;
+  nickname: string;
   timestamp: number;
 }
 
@@ -13,9 +14,6 @@ interface PresenceNotificationProps {
 
 const PresenceNotification = ({ events, onDismiss }: PresenceNotificationProps) => {
   if (events.length === 0) return null;
-
-  const getEmoji = (user: 'he' | 'she') => user === 'she' ? '🤍' : '👻';
-  const getName = (user: 'he' | 'she') => user === 'she' ? 'She' : 'He';
 
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-[90%] max-w-sm">
@@ -32,9 +30,9 @@ const PresenceNotification = ({ events, onDismiss }: PresenceNotificationProps) 
           `}
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">{getEmoji(event.user)}</span>
+            <span className="text-lg">{event.type === 'join' ? '💫' : '👋'}</span>
             <span className="text-sm font-medium">
-              {getName(event.user)} {event.type === 'join' ? 'joined the chat' : 'left the chat'}
+              {event.nickname} {event.type === 'join' ? 'joined the chat' : 'left the chat'}
             </span>
             <span className={`w-2 h-2 rounded-full ${event.type === 'join' ? 'bg-green-500' : 'bg-rose'}`} />
           </div>
