@@ -36,14 +36,14 @@ const ChatHeader = ({ currentUser, otherTyping, isOtherOnline, onSettings, onBac
           </div>
           
           <div>
-            <h2 className="font-display text-lg leading-tight text-foreground/90">{otherName}</h2>
+            <h2 className={`font-display text-lg leading-tight ${currentUser === 'he' ? 'text-glow-rose' : 'text-glow-lavender'}`}>{otherName}</h2>
             {otherTyping ? (
-              <div className="flex items-center gap-1 text-xs text-blush-deep">
+              <div className="flex items-center gap-1 text-xs text-rose">
                 <span>typing</span>
                 <span className="flex gap-0.5">
-                  <span className="typing-dot w-1 h-1 rounded-full bg-blush-deep" />
-                  <span className="typing-dot w-1 h-1 rounded-full bg-blush-deep" />
-                  <span className="typing-dot w-1 h-1 rounded-full bg-blush-deep" />
+                  <span className="typing-dot w-1 h-1 rounded-full bg-rose" />
+                  <span className="typing-dot w-1 h-1 rounded-full bg-rose" />
+                  <span className="typing-dot w-1 h-1 rounded-full bg-rose" />
                 </span>
               </div>
             ) : (

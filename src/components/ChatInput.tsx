@@ -72,10 +72,10 @@ const ChatInput = ({ onSend, onTyping }: ChatInputProps) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="w-full px-4 py-2.5 rounded-full bg-lavender/30 border border-lavender-deep/20 
+            className="w-full px-4 py-2.5 rounded-full bg-muted/50 border border-border 
                      text-foreground placeholder:text-muted-foreground/50
-                     focus:outline-none focus:ring-2 focus:ring-lavender-deep/30 focus:border-transparent
-                     transition-all duration-200 font-body text-sm"
+                     focus:outline-none focus:ring-2 focus:ring-lavender-deep/30 focus:border-lavender-deep/30
+                     transition-all duration-200 font-body text-sm backdrop-blur-lg"
           />
         </div>
 

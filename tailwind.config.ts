@@ -64,6 +64,7 @@ export default {
           deep: "hsl(var(--blush-deep))",
         },
         rose: "hsl(var(--rose))",
+        "rose-gold": "hsl(var(--rose-gold))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
