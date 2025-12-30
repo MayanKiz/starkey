@@ -12,7 +12,7 @@ interface ChatHeaderProps {
 const ChatHeader = ({ currentUser, otherTyping, onSettings, onBack }: ChatHeaderProps) => {
   const { days } = useRelationshipTimer();
   const otherName = currentUser === 'he' ? 'She' : 'He';
-  const otherEmoji = currentUser === 'he' ? '👩🏻' : '👨🏻';
+  const otherEmoji = currentUser === 'he' ? '🤍' : '👻';
 
   return (
     <header className="glass sticky top-0 z-50 px-4 py-3 flex items-center justify-between border-b border-glass-border">
