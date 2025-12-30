@@ -85,16 +85,14 @@ const PinEntry = ({ onAccess }: PinEntryProps) => {
           ))}
         </div>
 
-        {/* Hidden Input for keyboard */}
+        {/* Hidden Input - readOnly to prevent keyboard */}
         <input
           ref={inputRef}
           type="tel"
+          inputMode="none"
+          readOnly
           className="absolute opacity-0 pointer-events-none"
           value={pin}
-          onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-            setPin(value);
-          }}
           onKeyDown={handleKeyPress}
           autoComplete="off"
         />

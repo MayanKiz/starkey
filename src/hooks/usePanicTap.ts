@@ -1,10 +1,20 @@
 import { useEffect, useRef } from 'react';
 
-export const usePanicTap = (tapCount = 4, timeWindow = 1000) => {
+export const usePanicTap = (tapCount = 4, timeWindow = 600) => {
   const tapsRef = useRef<number[]>([]);
 
   useEffect(() => {
-    const handleTap = () => {
+    const handleTap = (e: MouseEvent | TouchEvent) => {
+      // Ignore taps on keypad buttons or interactive elements
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('button') ||
+        target.closest('input') ||
+        target.closest('[data-ignore-panic]')
+      ) {
+        return;
+      }
+
       const now = Date.now();
       tapsRef.current.push(now);
       
