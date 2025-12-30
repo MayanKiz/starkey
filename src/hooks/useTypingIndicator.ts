@@ -1,23 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export const useTypingIndicator = (currentUser: 'he' | 'she' | null) => {
+export const useTypingIndicator = (currentUserId: string | null, otherUserId: string | null) => {
   const [otherTyping, setOtherTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const otherId = currentUser === 'he' ? 'she' : 'he';
-
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUserId || !otherUserId) return;
 
     const channel = supabase
-      .channel('typing-realtime')
+      .channel(`typing-${currentUserId}-${otherUserId}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'typing_status' },
+        { event: '*', schema: 'public', table: 'typing_status' },
         (payload) => {
-          if (payload.new.id === otherId) {
-            setOtherTyping(payload.new.is_typing);
+          if (payload.new && (payload.new as any).id === otherUserId) {
+            setOtherTyping((payload.new as any).is_typing);
           }
         }
       )
@@ -26,20 +24,24 @@ export const useTypingIndicator = (currentUser: 'he' | 'she' | null) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, otherId]);
+  }, [currentUserId, otherUserId]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
-    if (!currentUser) return;
+    if (!currentUserId) return;
 
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    // Upsert typing status
     await supabase
       .from('typing_status')
-      .update({ is_typing: isTyping, updated_at: new Date().toISOString() })
-      .eq('id', currentUser);
+      .upsert({ 
+        id: currentUserId, 
+        is_typing: isTyping, 
+        updated_at: new Date().toISOString() 
+      });
 
     // Auto-stop typing after 3 seconds
     if (isTyping) {
@@ -47,7 +49,7 @@ export const useTypingIndicator = (currentUser: 'he' | 'she' | null) => {
         setTyping(false);
       }, 3000);
     }
-  }, [currentUser]);
+  }, [currentUserId]);
 
   return { otherTyping, setTyping };
 };

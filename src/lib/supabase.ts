@@ -2,6 +2,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 export { supabase };
 
+export type User = {
+  id: string;
+  nickname: string;
+  login_pin: string;
+  connection_pin: string;
+  is_online: boolean;
+  last_seen: string;
+  created_at: string;
+};
+
 export type Message = {
   id: string;
   sender: 'he' | 'she';
@@ -11,16 +21,18 @@ export type Message = {
   reactions: string[];
   is_read: boolean;
   created_at: string;
+  sender_id: string | null;
+  receiver_id: string | null;
 };
 
 export type TypingStatus = {
-  id: 'he' | 'she';
+  id: string;
   is_typing: boolean;
   updated_at: string;
 };
 
 export type ChatSettings = {
-  id: 'he' | 'she';
+  id: string;
   wallpaper_url: string | null;
   updated_at: string;
 };
