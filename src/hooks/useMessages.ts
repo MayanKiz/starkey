@@ -68,9 +68,15 @@ export const useMessages = (currentUserId: string | null, otherUserId: string | 
   const sendMessage = async (content: string, type: 'text' | 'voice' | 'heartbeat' = 'text', voiceUrl?: string) => {
     if (!currentUserId || !otherUserId) return;
 
+    // Determine sender label based on legacy user IDs
+    const getSenderLabel = (userId: string): string => {
+      if (userId === '00000000-0000-0000-0000-000000000001') return 'he';
+      if (userId === '00000000-0000-0000-0000-000000000002') return 'she';
+      return 'user';
+    };
+
     const { error } = await supabase.from('messages').insert({
-      sender: currentUserId === '00000000-0000-0000-0000-000000000001' ? 'he' : 
-              currentUserId === '00000000-0000-0000-0000-000000000002' ? 'she' : 'user',
+      sender: getSenderLabel(currentUserId),
       sender_id: currentUserId,
       receiver_id: otherUserId,
       content,
