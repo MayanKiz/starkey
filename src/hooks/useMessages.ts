@@ -95,11 +95,24 @@ export const useMessages = (currentUser: 'he' | 'she' | null) => {
   };
 
   const nukeAllMessages = async () => {
-    const { error } = await supabase.from('messages').delete().neq('id', '');
+    // Hard delete ALL messages from database - no trace left
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .gte('created_at', '1970-01-01'); // Deletes all rows
+    
     if (error) {
       console.error('Error deleting messages:', error);
+      return false;
     }
+    
+    // Clear local state immediately
     setMessages([]);
+    
+    // Clear any cached messages in localStorage
+    localStorage.removeItem('pending_messages');
+    
+    return true;
   };
 
   return {

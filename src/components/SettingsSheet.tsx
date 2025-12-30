@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Trash2, Image, Palette, Ghost, Bell } from 'lucide-react';
+import { Trash2, Image, Palette, Ghost, Bell, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/lib/supabase';
 import { isGhostModeEnabled, setGhostMode } from '@/lib/notifications';
+import { toast } from '@/hooks/use-toast';
 
 interface SettingsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentUser: 'he' | 'she';
-  onNuke: () => void;
+  onNuke: () => Promise<boolean>;
 }
 
 const GRADIENT_PRESETS = [
@@ -22,6 +23,7 @@ const GRADIENT_PRESETS = [
 
 const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsSheetProps) => {
   const [confirmNuke, setConfirmNuke] = useState(false);
+  const [isNuking, setIsNuking] = useState(false);
   const [ghostMode, setGhostModeState] = useState(isGhostModeEnabled());
 
   const handleWallpaperUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,11 +48,27 @@ const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsShee
       .eq('id', currentUser);
   };
 
-  const handleNuke = () => {
+  const handleNuke = async () => {
     if (confirmNuke) {
-      onNuke();
+      setIsNuking(true);
+      const success = await onNuke();
+      setIsNuking(false);
       setConfirmNuke(false);
-      onOpenChange(false);
+      
+      if (success) {
+        toast({
+          title: "History Cleared",
+          description: "Stay Safe. 🤫",
+          duration: 3000,
+        });
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to clear history. Try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       setConfirmNuke(true);
       setTimeout(() => setConfirmNuke(false), 3000);
@@ -150,8 +168,18 @@ const SettingsSheet = ({ open, onOpenChange, currentUser, onNuke }: SettingsShee
               variant={confirmNuke ? 'destructive' : 'outline'}
               className={`w-full ${confirmNuke ? '' : 'border-destructive/30 text-destructive hover:bg-destructive/10'}`}
               onClick={handleNuke}
+              disabled={isNuking}
             >
-              {confirmNuke ? 'Tap again to confirm' : 'Clear All Messages'}
+              {isNuking ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Nuking...
+                </>
+              ) : confirmNuke ? (
+                'Tap again to confirm'
+              ) : (
+                'Clear All Messages'
+              )}
             </Button>
             <p className="text-xs text-muted-foreground mt-2 text-center">
               This will delete messages for both users permanently
