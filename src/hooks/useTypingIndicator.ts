@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export const useTypingIndicator = (currentUserId: string | null, otherUserId: string | null) => {
   const [otherTyping, setOtherTyping] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (!currentUserId || !otherUserId) return;
