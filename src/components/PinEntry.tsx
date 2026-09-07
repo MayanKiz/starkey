@@ -10,7 +10,7 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
   const inputRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
-  useEffect(() => { if (pin.length === 4) void validatePin(pin); }, [pin]);
+  useEffect(() => { if (pin.length === 6) void validatePin(pin); }, [pin]);
 
   const validatePin = async (value: string) => {
     const { data } = await supabase.from('users').select('*').eq('login_pin', value).maybeSingle();
@@ -24,7 +24,7 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
 
   const press = (key: string | number) => {
     if (key === 'del') setPin((current) => current.slice(0, -1));
-    else if (pin.length < 4) setPin((current) => current + key);
+    else if (pin.length < 6) setPin((current) => current + key);
   };
 
   return (
@@ -35,11 +35,11 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
         </div>
         <p className="mb-1 text-sm font-semibold tracking-wide text-pink">just us, softly</p>
         <h1 className="font-display text-4xl font-semibold text-foreground">Hello again!</h1>
-        <p className="mx-auto mt-2 max-w-[260px] text-sm text-muted-foreground">Enter your 4-digit code to open your little world.</p>
+        <p className="mx-auto mt-2 max-w-[260px] text-sm text-muted-foreground">Enter your 6-digit code to open your little world.</p>
 
         <button className="absolute h-0 w-0 overflow-hidden opacity-0" ref={inputRef} onKeyDown={(event) => { if (/^[0-9]$/.test(event.key)) press(event.key); if (event.key === 'Backspace') press('del'); }} aria-label="PIN input" />
         <div className="my-8 flex justify-center gap-4" aria-label="PIN progress">
-          {[0, 1, 2, 3].map((index) => <span key={index} className={`pin-dot ${pin.length > index ? 'pin-dot-filled' : ''} ${error ? 'animate-[shake_.3s_ease-in-out]' : ''}`} />)}
+          {[0, 1, 2, 3, 4, 5].map((index) => <span key={index} className={`pin-dot ${pin.length > index ? 'pin-dot-filled' : ''} ${error ? 'animate-[shake_.3s_ease-in-out]' : ''}`} />)}
         </div>
         <div className="mx-auto grid max-w-[280px] grid-cols-3 gap-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((key, index) => key === null ? <span key={index} /> : <button key={index} className="pin-key" onClick={() => press(key)} aria-label={key === 'del' ? 'Delete' : `Number ${key}`}>{key === 'del' ? <Delete className="mx-auto h-5 w-5" /> : key}</button>)}

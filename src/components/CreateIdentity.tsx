@@ -14,7 +14,7 @@ const CreateIdentity = ({ onBack, onSuccess }: CreateIdentityProps) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!nickname.trim() || loginPin.length !== 4 || connectionPin.length !== 4) return;
+    if (!nickname.trim() || loginPin.length !== 6 || connectionPin.length !== 4) return;
     setLoading(true);
     const { error } = await supabase.from('users').insert({ nickname: nickname.trim(), login_pin: loginPin, connection_pin: connectionPin });
     setLoading(false);
@@ -37,11 +37,11 @@ const CreateIdentity = ({ onBack, onSuccess }: CreateIdentityProps) => {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">No email, no complicated password. Just a cute name and two tiny codes.</p>
           <form onSubmit={handleSubmit} className="mt-7 space-y-5">
             <label className="block text-sm font-semibold">Your name<input className="soft-input mt-2" value={nickname} onChange={(e) => setNickname(e.target.value.slice(0, 20))} placeholder="e.g. sunshine" maxLength={20} /></label>
-            <label className="block text-sm font-semibold">Your 4-digit login code<input className="soft-input mt-2 tracking-[.45em]" value={loginPin} onChange={(e) => setLoginPin(onlyDigits(e.target.value, 4))} inputMode="numeric" placeholder="••••" /></label>
-            <p className="-mt-3 text-xs text-muted-foreground">This is the code you use to open your space.</p>
+            <label className="block text-sm font-semibold">Your 6-digit login code<input className="soft-input mt-2 tracking-[.45em]" value={loginPin} onChange={(e) => setLoginPin(onlyDigits(e.target.value, 6))} inputMode="numeric" placeholder="••••••" /></label>
+            <p className="-mt-3 text-xs text-muted-foreground">This keeps your existing login working.</p>
             <label className="block text-sm font-semibold">Your 4-digit connect code<input className="soft-input mt-2 tracking-[.45em]" value={connectionPin} onChange={(e) => setConnectionPin(onlyDigits(e.target.value, 4))} inputMode="numeric" placeholder="••••" /></label>
             <p className="-mt-3 text-xs text-muted-foreground">Share this only with someone you want to chat with.</p>
-            <button className="cute-button w-full rounded-2xl bg-[hsl(var(--pink))] py-3.5 font-semibold text-white disabled:opacity-40" disabled={loading || !nickname.trim() || loginPin.length !== 4 || connectionPin.length !== 4}>{loading ? 'Making your space…' : 'Create my space'}</button>
+            <button className="cute-button w-full rounded-2xl bg-[hsl(var(--pink))] py-3.5 font-semibold text-white disabled:opacity-40" disabled={loading || !nickname.trim() || loginPin.length !== 6 || connectionPin.length !== 4}>{loading ? 'Making your space…' : 'Create my space'}</button>
           </form>
         </div>
       </div>

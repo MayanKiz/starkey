@@ -1,6 +1,6 @@
 # Secret Identity Chat
 
-A private, real-time relationship chat application built with React, TypeScript, Vite, Tailwind CSS, and Supabase. Users create a secret identity instead of using an email address, sign in with a simple four-digit PIN, connect to another user with that user’s four-digit connection PIN, and exchange messages in real time.
+A private, real-time relationship chat application built with React, TypeScript, Vite, Tailwind CSS, and Supabase. Users create a secret identity instead of using an email address, sign in with a six-digit PIN, connect to another user with that user’s four-digit connection PIN, and exchange messages in real time.
 
 > **Important:** This project uses a custom PIN-based identity flow. It does **not** use Supabase Auth, email verification, password reset, or email/password accounts. Review the security limitations before deploying it for sensitive data.
 
@@ -32,7 +32,7 @@ A private, real-time relationship chat application built with React, TypeScript,
 ## Features
 
 - Secret identity creation with a nickname.
-- Simple four-digit PIN sign-in.
+- Six-digit PIN sign-in, retained for compatibility with existing users.
 - Four-digit connection PINs for starting a private conversation.
 - Real-time user presence with online and offline status.
 - Real-time message delivery through Supabase Realtime.
@@ -51,7 +51,7 @@ The application is a single-page React application. The root route (`/`) control
 
 | View | Purpose |
 | --- | --- |
-| PIN entry | Signs an existing user in with a four-digit login PIN. |
+| PIN entry | Signs an existing user in with a six-digit login PIN. |
 | Create Secret Identity | Creates a nickname, login PIN, and connection PIN in Supabase. |
 | The Hub | Lists other users and shows their current presence. |
 | Chat | Displays the real-time conversation with one selected user. |
@@ -63,7 +63,7 @@ After the application loads, it registers a service worker for browser notificat
 1. A visitor opens the application and sees the PIN keypad.
 2. The visitor selects **Create Secret Identity** if they do not have an account.
 3. The application inserts the new identity into the Supabase `users` table.
-4. The visitor returns to the PIN screen and enters the four-digit login PIN.
+4. The visitor returns to the PIN screen and enters the six-digit login PIN.
 5. The application looks up the matching row in `users` and opens **The Hub**.
 6. The user selects another identity and enters that person’s four-digit connection PIN.
 7. The application opens a conversation and subscribes to real-time database changes.
@@ -76,18 +76,18 @@ In this project, creating an account means creating a **secret identity**.
 1. Open the application.
 2. Select **Create Secret Identity** below the PIN keypad.
 3. Enter a nickname or alias. The current form allows up to 20 characters.
-4. Enter a four-digit numeric **Login PIN**. This PIN is used to sign in.
+4. Enter a six-digit numeric **Login PIN**. This PIN is used to sign in.
 5. Enter a four-digit numeric **Connection PIN**. Share this PIN only with people who should be able to connect to this identity.
 6. Select **Create Identity**.
 7. If the login PIN is already used, choose a different one.
-8. After the identity is created, return to the welcome screen and sign in with the four-digit login PIN.
+8. After the identity is created, return to the welcome screen and sign in with the six-digit login PIN.
 
 The login PIN and connection PIN have different purposes. The login PIN identifies the current user. The connection PIN authorizes another user to open a chat with the selected identity.
 
 ## Sign in
 
 1. Open the application or return to the welcome screen.
-2. Enter the four-digit login PIN using the keypad.
+2. Enter the six-digit login PIN using the keypad.
 3. The application checks the `users.login_pin` column.
 4. When a matching user is found, the application opens **The Hub**.
 5. If the PIN is invalid, the keypad shakes, clears, and allows another attempt.
