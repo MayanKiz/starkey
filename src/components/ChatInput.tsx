@@ -1,124 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Send, Mic, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useLoveRain } from '@/hooks/useLoveRain';
 
-interface ChatInputProps {
-  onSend: (content: string, type: 'text' | 'voice' | 'heartbeat', voiceUrl?: string) => void;
-  onTyping: (isTyping: boolean) => void;
-}
-
+interface ChatInputProps { onSend: (content: string, type: 'text' | 'voice' | 'heartbeat', voiceUrl?: string) => void; onTyping: (isTyping: boolean) => void; }
 const ChatInput = ({ onSend, onTyping }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const { triggerLoveRain, checkForLoveKeywords } = useLoveRain();
-
-  const handleSend = () => {
-    if (!message.trim()) return;
-
-    // Check for love keywords and trigger rain
-    if (checkForLoveKeywords(message)) {
-      triggerLoveRain();
-    }
-
-    onSend(message.trim(), 'text');
-    setMessage('');
-    onTyping(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const handleHeartbeat = () => {
-    onSend('💓', 'heartbeat');
-    
-    // Trigger haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100, 50, 100]);
-    }
-
-    triggerLoveRain();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
-    onTyping(e.target.value.length > 0);
-  };
-
-  return (
-    <div className="glass border-t border-glass-border px-4 py-3">
-      <div className="flex items-center gap-2">
-        {/* Heartbeat button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full hover:bg-blush/30 transition-colors flex-shrink-0"
-          onClick={handleHeartbeat}
-        >
-          <Heart className="w-5 h-5 text-rose fill-rose animate-pulse-heart" />
-        </Button>
-
-        {/* Input field */}
-        <div className="flex-1 relative">
-          <input
-            ref={inputRef}
-            type="text"
-            value={message}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            className="w-full px-4 py-2.5 rounded-full bg-muted/50 border border-border 
-                     text-foreground placeholder:text-muted-foreground/50
-                     focus:outline-none focus:ring-2 focus:ring-lavender-deep/30 focus:border-lavender-deep/30
-                     transition-all duration-200 font-body text-sm backdrop-blur-lg"
-          />
-        </div>
-
-        {/* Voice/Send button */}
-        {message.trim() ? (
-          <Button
-            size="icon"
-            className="rounded-full bg-gradient-to-r from-lavender-deep to-blush-deep hover:opacity-90 transition-opacity flex-shrink-0"
-            onClick={handleSend}
-          >
-            <Send className="w-4 h-4 text-white" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full transition-colors flex-shrink-0 ${
-              isRecording ? 'bg-rose text-white' : 'hover:bg-lavender/50'
-            }`}
-            onMouseDown={() => setIsRecording(true)}
-            onMouseUp={() => {
-              setIsRecording(false);
-              // TODO: Handle voice recording
-            }}
-            onTouchStart={() => setIsRecording(true)}
-            onTouchEnd={() => {
-              setIsRecording(false);
-            }}
-          >
-            <Mic className={`w-5 h-5 ${isRecording ? 'text-white' : 'text-muted-foreground'}`} />
-          </Button>
-        )}
-      </div>
-
-      {/* Recording indicator */}
-      {isRecording && (
-        <div className="flex items-center justify-center gap-2 mt-2 text-rose animate-fade-in">
-          <div className="w-2 h-2 rounded-full bg-rose animate-pulse" />
-          <span className="text-xs font-medium">Recording...</span>
-        </div>
-      )}
-    </div>
-  );
+  const send = () => { if (!message.trim()) return; if (checkForLoveKeywords(message)) triggerLoveRain(); onSend(message.trim(), 'text'); setMessage(''); onTyping(false); };
+  return <footer className="shrink-0 border-t border-border bg-white px-3 pt-2 safe-bottom"><div className="mx-auto flex max-w-3xl items-end gap-2"><button onClick={() => { onSend('💓', 'heartbeat'); triggerLoveRain(); navigator.vibrate?.([80, 40, 80]); }} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pink-soft" aria-label="Send heartbeat"><Heart className="h-5 w-5 fill-[hsl(var(--pink))] text-pink heartbeat-pulse" /></button><input autoFocus value={message} onChange={(event) => { setMessage(event.target.value); onTyping(event.target.value.length > 0); }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); } }} placeholder="Write something sweet…" className="soft-input h-11 min-w-0 flex-1 rounded-full py-2.5 text-sm" /><button onMouseDown={() => setIsRecording(true)} onMouseUp={() => setIsRecording(false)} onTouchStart={() => setIsRecording(true)} onTouchEnd={() => setIsRecording(false)} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${isRecording ? 'bg-pink text-white' : 'bg-yellow-soft text-foreground'}`} aria-label="Voice message"><Mic className="h-5 w-5" /></button>{message.trim() && <button onClick={send} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--pink))] text-white" aria-label="Send message"><Send className="h-5 w-5" /></button>}</div>{isRecording && <p className="py-1 text-center text-xs font-semibold text-pink">Hold to record a voice note…</p>}</footer>;
 };
-
 export default ChatInput;

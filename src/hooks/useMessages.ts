@@ -146,7 +146,25 @@ export const useMessages = (currentUserId: string | null, otherUserId: string | 
 };
 
 const playNotificationSound = () => {
-  const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-  audio.volume = 0.3;
-  audio.play().catch(() => {});
+  try {
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.35);
+    gain.connect(context.destination);
+    [659.25, 783.99].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      oscillator.connect(gain);
+      oscillator.start(context.currentTime + index * 0.06);
+      oscillator.stop(context.currentTime + 0.35);
+    });
+    window.setTimeout(() => void context.close(), 500);
+  } catch {
+    // Browsers can block audio until the user interacts with the page.
+  }
 };

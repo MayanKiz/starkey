@@ -1,214 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import ChatHeader from './ChatHeader';
 import MessageBubble from './MessageBubble';
 import PendingMessageBubble from './PendingMessageBubble';
 import ChatInput from './ChatInput';
-import SettingsSheet from './SettingsSheet';
 import PresenceNotification from './PresenceNotification';
 import { useMessages } from '@/hooks/useMessages';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { usePanicTap } from '@/hooks/usePanicTap';
 import { usePresence } from '@/hooks/usePresence';
 import { useMessageQueue } from '@/hooks/useMessageQueue';
-import { supabase, User } from '@/lib/supabase';
-import { sendStealthNotification, markMessagesAsRead } from '@/lib/notifications';
+import { User } from '@/lib/supabase';
+import { markMessagesAsRead } from '@/lib/notifications';
 import { WifiOff } from 'lucide-react';
 
-interface ChatViewProps {
-  currentUser: User;
-  chatPartner: User;
-  onBack: () => void;
-}
-
+interface ChatViewProps { currentUser: User; chatPartner: User; onBack: () => void; }
 const ChatView = ({ currentUser, chatPartner, onBack }: ChatViewProps) => {
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [wallpaper, setWallpaper] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
   const { messages, loading, addReaction, markAsRead, nukeAllMessages } = useMessages(currentUser.id, chatPartner.id);
   const { otherTyping, setTyping } = useTypingIndicator(currentUser.id, chatPartner.id);
   const { presenceEvents, isOtherOnline, dismissEvent } = usePresence(currentUser.id, currentUser.nickname, chatPartner.id, chatPartner.nickname);
   const { pendingMessages, isOnline, queueMessage, retryMessage } = useMessageQueue(currentUser.id, chatPartner.id);
-  
   usePanicTap();
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, pendingMessages]);
-
-  useEffect(() => {
-    const unreadMessages = messages.filter(m => m.sender_id !== currentUser.id && !m.is_read);
-    if (unreadMessages.length > 0) {
-      unreadMessages.forEach(m => markAsRead(m.id));
-      markMessagesAsRead();
-    }
-  }, [messages, currentUser.id, markAsRead]);
-
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.sender_id !== currentUser.id && !document.hasFocus()) {
-      sendStealthNotification();
-    }
-  }, [messages, currentUser.id]);
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const { data } = await supabase
-        .from('chat_settings')
-        .select('wallpaper_url')
-        .eq('id', currentUser.id)
-        .maybeSingle();
-      
-      if (data?.wallpaper_url) {
-        setWallpaper(data.wallpaper_url);
-      }
-    };
-    
-    loadSettings();
-
-    const channel = supabase
-      .channel('settings-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_settings' },
-        (payload) => {
-          if ((payload.new as any).id === currentUser.id) {
-            setWallpaper((payload.new as any).wallpaper_url);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUser.id]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setTyping(false);
-      }
-    };
-
-    const handleBeforeUnload = () => {
-      setTyping(false);
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [setTyping]);
-
-  const getWallpaperStyle = () => {
-    if (!wallpaper) {
-      return { background: 'var(--gradient-romantic)' };
-    }
-    if (wallpaper.startsWith('linear-gradient')) {
-      return { background: wallpaper };
-    }
-    return { 
-      backgroundImage: `url(${wallpaper})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    };
-  };
-
-  const handleSendMessage = async (content: string, type: 'text' | 'voice' | 'heartbeat', voiceUrl?: string) => {
-    await queueMessage(content, type, voiceUrl);
-  };
-
-  return (
-    <div className="h-screen flex flex-col">
-      <ChatHeader
-        currentUser={currentUser}
-        chatPartner={chatPartner}
-        otherTyping={otherTyping}
-        isOtherOnline={isOtherOnline}
-        onSettings={() => setSettingsOpen(true)}
-        onBack={onBack}
-      />
-
-      {!isOnline && (
-        <div className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-2 flex items-center justify-center gap-2">
-          <WifiOff className="w-4 h-4 text-amber-600" />
-          <span className="text-xs text-amber-700 font-medium">You're offline. Messages will be sent when connected.</span>
-        </div>
-      )}
-
-      <div 
-        className="flex-1 overflow-y-auto px-4 py-4 relative"
-        style={getWallpaperStyle()}
-      >
-        <PresenceNotification events={presenceEvents} onDismiss={dismissEvent} />
-
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-muted-foreground">Loading messages...</div>
-          </div>
-        ) : messages.length === 0 && pendingMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-6xl mb-4 animate-float">💕</div>
-            <h3 className="font-display text-xl text-foreground/80 mb-2">
-              Start your conversation
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-[250px]">
-              Send a message or tap the heart to send a heartbeat
-            </p>
-          </div>
-        ) : (
-          <>
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isSent={message.sender_id === currentUser.id}
-                onReaction={addReaction}
-              />
-            ))}
-            
-            {pendingMessages.map((message) => (
-              <PendingMessageBubble
-                key={message.id}
-                message={message}
-                onRetry={retryMessage}
-              />
-            ))}
-            
-            {otherTyping && (
-              <div className="flex justify-start mb-3 animate-fade-in">
-                <div className="bubble-received px-4 py-3">
-                  <div className="flex gap-1">
-                    <span className="typing-dot w-2 h-2 rounded-full bg-muted-foreground" />
-                    <span className="typing-dot w-2 h-2 rounded-full bg-muted-foreground" />
-                    <span className="typing-dot w-2 h-2 rounded-full bg-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </>
-        )}
-      </div>
-
-      <ChatInput
-        onSend={handleSendMessage}
-        onTyping={setTyping}
-      />
-
-      <SettingsSheet
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        currentUser={currentUser.id}
-        onNuke={nukeAllMessages}
-      />
-    </div>
-  );
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, pendingMessages]);
+  useEffect(() => { const unread = messages.filter((message) => message.sender_id !== currentUser.id && !message.is_read); unread.forEach((message) => markAsRead(message.id)); if (unread.length) markMessagesAsRead(); }, [messages, currentUser.id, markAsRead]);
+  return <section className="flex h-[100dvh] min-h-0 flex-col bg-[#fff9fc]"><ChatHeader currentUser={currentUser} chatPartner={chatPartner} otherTyping={otherTyping} isOtherOnline={isOtherOnline} onBack={onBack} />{!isOnline && <div className="flex shrink-0 items-center justify-center gap-2 bg-yellow-soft px-3 py-1.5 text-xs font-semibold text-foreground"><WifiOff className="h-3.5 w-3.5" /> Offline — messages will retry when you are back.</div>}<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4"><div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end"><PresenceNotification events={presenceEvents} onDismiss={dismissEvent} />{loading ? <p className="m-auto text-sm text-muted-foreground">Opening your chat…</p> : messages.length === 0 && pendingMessages.length === 0 ? <div className="m-auto max-w-xs text-center"><div className="mb-4 text-5xl">💌</div><h3 className="font-display text-2xl">Start with a hello</h3><p className="mt-1 text-sm text-muted-foreground">Send a sweet note or tap the heart.</p></div> : <>{messages.map((message) => <MessageBubble key={message.id} message={message} isSent={message.sender_id === currentUser.id} onReaction={addReaction} />)}{pendingMessages.map((message) => <PendingMessageBubble key={message.id} message={message} onRetry={retryMessage} />)}{otherTyping && <div className="bubble-received mb-3 w-fit px-4 py-3"><span className="typing-dot mr-1 inline-block h-2 w-2 rounded-full bg-muted-foreground" /><span className="typing-dot mr-1 inline-block h-2 w-2 rounded-full bg-muted-foreground" /><span className="typing-dot inline-block h-2 w-2 rounded-full bg-muted-foreground" /></div>}<div ref={messagesEndRef} /></>}</div></div><ChatInput onSend={(content, type, voiceUrl) => { void queueMessage(content, type, voiceUrl); }} onTyping={setTyping} /></section>;
 };
-
 export default ChatView;

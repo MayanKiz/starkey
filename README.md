@@ -1,6 +1,6 @@
 # Secret Identity Chat
 
-A private, real-time relationship chat application built with React, TypeScript, Vite, Tailwind CSS, and Supabase. Users create a secret identity instead of using an email address, sign in with a six-digit PIN, connect to another user with that user’s four-digit connection PIN, and exchange messages in real time.
+A private, real-time relationship chat application built with React, TypeScript, Vite, Tailwind CSS, and Supabase. Users create a secret identity instead of using an email address, sign in with a simple four-digit PIN, connect to another user with that user’s four-digit connection PIN, and exchange messages in real time.
 
 > **Important:** This project uses a custom PIN-based identity flow. It does **not** use Supabase Auth, email verification, password reset, or email/password accounts. Review the security limitations before deploying it for sensitive data.
 
@@ -32,17 +32,17 @@ A private, real-time relationship chat application built with React, TypeScript,
 ## Features
 
 - Secret identity creation with a nickname.
-- Six-digit PIN sign-in.
+- Simple four-digit PIN sign-in.
 - Four-digit connection PINs for starting a private conversation.
 - Real-time user presence with online and offline status.
 - Real-time message delivery through Supabase Realtime.
 - Text messages, heartbeat messages, reactions, read status, and typing indicators.
 - Offline message queueing with retry support when the connection returns.
-- Browser notifications, including a privacy-oriented notification mode.
-- Chat wallpapers using uploaded images or built-in gradient presets.
-- Conversation-specific message deletion from the Settings panel.
-- A vault screen showing recent message statistics and message history.
-- Responsive glassmorphism UI with a romantic dark theme.
+- Browser notifications and a soft in-browser chime for incoming messages.
+- Popup-based connection flow instead of an inline expanding panel.
+- Full-screen mobile chat layout with the composer held above the keyboard.
+- Self-delete action that removes the current identity and its messages.
+- Cute, minimal light theme with componentized screens that are easy to edit.
 - Progressive Web App support through a service worker and web manifest.
 
 ## How the application works
@@ -51,11 +51,10 @@ The application is a single-page React application. The root route (`/`) control
 
 | View | Purpose |
 | --- | --- |
-| PIN entry | Signs an existing user in with a six-digit login PIN. |
+| PIN entry | Signs an existing user in with a four-digit login PIN. |
 | Create Secret Identity | Creates a nickname, login PIN, and connection PIN in Supabase. |
 | The Hub | Lists other users and shows their current presence. |
 | Chat | Displays the real-time conversation with one selected user. |
-| Our Vault | Displays recent message statistics and stored messages. |
 
 After the application loads, it registers a service worker for browser notification support. The current user is kept in React state while the page is open; the code does not persist a normal authenticated Supabase session.
 
@@ -64,7 +63,7 @@ After the application loads, it registers a service worker for browser notificat
 1. A visitor opens the application and sees the PIN keypad.
 2. The visitor selects **Create Secret Identity** if they do not have an account.
 3. The application inserts the new identity into the Supabase `users` table.
-4. The visitor returns to the PIN screen and enters the six-digit login PIN.
+4. The visitor returns to the PIN screen and enters the four-digit login PIN.
 5. The application looks up the matching row in `users` and opens **The Hub**.
 6. The user selects another identity and enters that person’s four-digit connection PIN.
 7. The application opens a conversation and subscribes to real-time database changes.
@@ -77,18 +76,18 @@ In this project, creating an account means creating a **secret identity**.
 1. Open the application.
 2. Select **Create Secret Identity** below the PIN keypad.
 3. Enter a nickname or alias. The current form allows up to 20 characters.
-4. Enter a six-digit numeric **Login PIN**. This PIN is used to sign in.
+4. Enter a four-digit numeric **Login PIN**. This PIN is used to sign in.
 5. Enter a four-digit numeric **Connection PIN**. Share this PIN only with people who should be able to connect to this identity.
 6. Select **Create Identity**.
 7. If the login PIN is already used, choose a different one.
-8. After the identity is created, return to the welcome screen and sign in with the six-digit login PIN.
+8. After the identity is created, return to the welcome screen and sign in with the four-digit login PIN.
 
 The login PIN and connection PIN have different purposes. The login PIN identifies the current user. The connection PIN authorizes another user to open a chat with the selected identity.
 
 ## Sign in
 
 1. Open the application or return to the welcome screen.
-2. Enter the six-digit login PIN using the keypad or a physical keyboard.
+2. Enter the four-digit login PIN using the keypad.
 3. The application checks the `users.login_pin` column.
 4. When a matching user is found, the application opens **The Hub**.
 5. If the PIN is invalid, the keypad shakes, clears, and allows another attempt.
@@ -119,45 +118,15 @@ Inside a conversation, the application provides the following behavior:
 | Read messages | Incoming messages are marked as read when displayed. |
 | Type | Publishes typing status for the other participant. |
 | Go offline | Keeps unsent messages in a local pending queue until delivery can be retried. |
-| Change wallpaper | Applies an uploaded image or a gradient preset to the chat. |
-| Receive notifications | Plays an incoming-message sound and can request browser notifications. |
+| Receive notifications | Plays a soft two-note chime and can request browser notifications. |
 
 When the browser is offline, the chat displays an offline banner. Queued messages are shown as pending messages and can be retried after connectivity returns.
 
-## Settings and privacy features
+## Mobile and interaction design
 
-Open the Settings panel from the Hub or the chat header.
+The interface is intentionally designed like a small, friendly messaging app. Each primary screen is a separate component, the Hub opens connection details in a modal popup, and the chat uses a `100dvh` flex layout so the message composer remains above the mobile keyboard. Only the conversation area scrolls; the whole page does not jump while typing.
 
-### Ghost Mode
-
-Ghost Mode disables application notifications locally in the browser. It is a client-side preference and does not change database access or user visibility.
-
-### Notifications
-
-The application can request browser notification permission on the first login. Notifications are described in the UI as privacy-oriented alerts. Browser notification permission must be granted by the user, and browser settings can override the application.
-
-### Chat wallpaper
-
-You can upload an image or select one of four built-in gradients: **Midnight**, **Deep Space**, **Aurora**, and **Obsidian**. Uploaded images are converted to a data URL in the browser and stored in the `chat_settings.wallpaper_url` field.
-
-### Clear All Messages
-
-The **Clear All Messages** action requires a second confirmation tap. It deletes the messages in the currently open conversation for both participants and cannot be undone through the application. Use this action carefully.
-
-## Vault access
-
-The PIN entry screen contains a separate vault path. In the current source code, entering the hard-coded PIN `051009` opens **Our Vault** instead of signing in as a user.
-
-The vault:
-
-- Reads up to the 100 most recent rows from `messages`.
-- Counts total messages.
-- Counts heartbeat messages.
-- Counts messages labeled as sent by `he` and `she`.
-- Groups recent messages by calendar date.
-- Displays up to seven date groups and up to three messages per group.
-
-This is not a protected administrator authentication flow. Anyone who knows or discovers the PIN and has database read access available to the frontend can reach this view. Change or remove this behavior before using the application with confidential data.
+The Hub’s trash icon is **Delete my space**. It asks for confirmation, deletes messages associated with the current user, deletes the user row, and returns to the welcome screen. This action is permanent.
 
 ## Technology stack
 

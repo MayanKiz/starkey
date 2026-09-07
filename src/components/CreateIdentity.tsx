@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { Shield, ArrowLeft, Fingerprint } from 'lucide-react';
+import { ArrowLeft, Heart, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
-interface CreateIdentityProps {
-  onBack: () => void;
-  onSuccess: () => void;
-}
+interface CreateIdentityProps { onBack: () => void; onSuccess: () => void; }
+const onlyDigits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max);
 
 const CreateIdentity = ({ onBack, onSuccess }: CreateIdentityProps) => {
   const [nickname, setNickname] = useState('');
@@ -14,154 +12,40 @@ const CreateIdentity = ({ onBack, onSuccess }: CreateIdentityProps) => {
   const [connectionPin, setConnectionPin] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!nickname.trim() || loginPin.length !== 6 || connectionPin.length !== 4) {
-      toast({
-        title: "Invalid Input",
-        description: "Please fill all fields correctly.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!nickname.trim() || loginPin.length !== 4 || connectionPin.length !== 4) return;
     setLoading(true);
-
-    const { error } = await supabase.from('users').insert({
-      nickname: nickname.trim(),
-      login_pin: loginPin,
-      connection_pin: connectionPin,
-    });
-
+    const { error } = await supabase.from('users').insert({ nickname: nickname.trim(), login_pin: loginPin, connection_pin: connectionPin });
     setLoading(false);
-
     if (error) {
-      if (error.code === '23505') {
-        toast({
-          title: "PIN Already Exists",
-          description: "This login PIN is already taken. Choose another.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Something went wrong. Try again.",
-          variant: "destructive",
-        });
-      }
+      toast({ title: error.code === '23505' ? 'That code is taken' : 'Could not create space', description: error.code === '23505' ? 'Try another 4-digit login code.' : 'Please check your connection and try again.', variant: 'destructive' });
       return;
     }
-
-    toast({
-      title: "Identity Created",
-      description: "Your secret identity is ready. Log in to continue.",
-    });
-    
+    toast({ title: 'Your space is ready!', description: 'Use your 4-digit code to come back anytime.' });
     onSuccess();
   };
 
   return (
-    <div className="min-h-screen romantic-gradient starry-bg flex flex-col items-center justify-center p-6">
-      {/* Ambient glow */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-lavender-deep/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-rose/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="glass-card p-8 max-w-sm w-full animate-fade-in relative z-10">
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          className="absolute top-4 left-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            <Shield className="w-14 h-14 text-lavender-deep relative z-10" />
-            <div className="absolute inset-0 blur-xl bg-lavender-deep/40 rounded-full scale-150" />
-          </div>
+    <section className="app-shell page-scroll px-5 py-7">
+      <div className="mx-auto flex min-h-full w-full max-w-md items-center justify-center">
+        <div className="cute-card relative w-full p-6 sm:p-8">
+          <button onClick={onBack} className="mb-6 rounded-full p-2 text-muted-foreground hover:bg-pink-soft" aria-label="Back"><ArrowLeft className="h-5 w-5" /></button>
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-soft"><Heart className="h-7 w-7 fill-[hsl(var(--pink))] text-[hsl(var(--pink))]" /></div>
+          <p className="mb-1 flex items-center gap-2 text-sm font-semibold text-pink"><Sparkles className="h-4 w-4" /> make it yours</p>
+          <h1 className="font-display text-3xl font-semibold">Create your space</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">No email, no complicated password. Just a cute name and two tiny codes.</p>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+            <label className="block text-sm font-semibold">Your name<input className="soft-input mt-2" value={nickname} onChange={(e) => setNickname(e.target.value.slice(0, 20))} placeholder="e.g. sunshine" maxLength={20} /></label>
+            <label className="block text-sm font-semibold">Your 4-digit login code<input className="soft-input mt-2 tracking-[.45em]" value={loginPin} onChange={(e) => setLoginPin(onlyDigits(e.target.value, 4))} inputMode="numeric" placeholder="••••" /></label>
+            <p className="-mt-3 text-xs text-muted-foreground">This is the code you use to open your space.</p>
+            <label className="block text-sm font-semibold">Your 4-digit connect code<input className="soft-input mt-2 tracking-[.45em]" value={connectionPin} onChange={(e) => setConnectionPin(onlyDigits(e.target.value, 4))} inputMode="numeric" placeholder="••••" /></label>
+            <p className="-mt-3 text-xs text-muted-foreground">Share this only with someone you want to chat with.</p>
+            <button className="cute-button w-full rounded-2xl bg-[hsl(var(--pink))] py-3.5 font-semibold text-white disabled:opacity-40" disabled={loading || !nickname.trim() || loginPin.length !== 4 || connectionPin.length !== 4}>{loading ? 'Making your space…' : 'Create my space'}</button>
+          </form>
         </div>
-
-        <h1 className="font-display text-2xl text-center text-glow-lavender mb-2">
-          Create Secret Identity
-        </h1>
-        <p className="text-center text-muted-foreground text-sm mb-6">
-          Choose your alias and secure PINs
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Nickname */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">Nickname</label>
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="Your secret alias..."
-              maxLength={20}
-              className="w-full px-4 py-3 bg-card/50 border border-border/30 rounded-xl 
-                         text-foreground placeholder:text-muted-foreground/50
-                         focus:outline-none focus:ring-2 focus:ring-lavender-deep/50 
-                         focus:border-lavender-deep/50 transition-all"
-            />
-          </div>
-
-          {/* Login PIN */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">6-Digit Login PIN</label>
-            <div className="relative">
-              <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />
-              <input
-                type="tel"
-                inputMode="numeric"
-                value={loginPin}
-                onChange={(e) => setLoginPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="••••••"
-                className="w-full pl-11 pr-4 py-3 bg-card/50 border border-border/30 rounded-xl 
-                           text-foreground placeholder:text-muted-foreground/50 tracking-[0.5em]
-                           focus:outline-none focus:ring-2 focus:ring-lavender-deep/50 
-                           focus:border-lavender-deep/50 transition-all"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground/60">This is your login password</p>
-          </div>
-
-          {/* Connection PIN */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">4-Digit Connection PIN</label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              value={connectionPin}
-              onChange={(e) => setConnectionPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="••••"
-              className="w-full px-4 py-3 bg-card/50 border border-border/30 rounded-xl 
-                         text-foreground placeholder:text-muted-foreground/50 tracking-[0.5em]
-                         focus:outline-none focus:ring-2 focus:ring-lavender-deep/50 
-                         focus:border-lavender-deep/50 transition-all"
-            />
-            <p className="text-xs text-muted-foreground/60">Others need this to chat with you</p>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading || nickname.trim().length === 0 || loginPin.length !== 6 || connectionPin.length !== 4}
-            className="w-full py-3 bg-lavender-deep/80 hover:bg-lavender-deep text-white 
-                       rounded-xl font-medium transition-all disabled:opacity-50 
-                       disabled:cursor-not-allowed shadow-[0_0_20px_hsl(270_50%_50%/0.3)]
-                       hover:shadow-[0_0_30px_hsl(270_50%_50%/0.5)]"
-          >
-            {loading ? 'Creating...' : 'Create Identity'}
-          </button>
-        </form>
       </div>
-    </div>
+    </section>
   );
 };
-
 export default CreateIdentity;
