@@ -5,6 +5,7 @@ export { supabase };
 export type User = {
   id: string;
   nickname: string;
+  rank?: 'Leader' | 'Guardian' | 'Member' | 'Newcomer';
   login_pin: string;
   connection_pin: string;
   is_online: boolean;

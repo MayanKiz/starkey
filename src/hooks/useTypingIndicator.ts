@@ -14,8 +14,9 @@ export const useTypingIndicator = (currentUserId: string | null, otherUserId: st
         'postgres_changes',
         { event: '*', schema: 'public', table: 'typing_status' },
         (payload) => {
-          if (payload.new && (payload.new as any).id === otherUserId) {
-            setOtherTyping((payload.new as any).is_typing);
+          const next = payload.new as { id?: string; is_typing?: boolean };
+          if (next.id === otherUserId) {
+            setOtherTyping(Boolean(next.is_typing));
           }
         }
       )

@@ -24,6 +24,8 @@
 .eyebrow { color: #68d8b4; font-size: 10px; font-weight: 700; letter-spacing: .18em; }
 .secure-topbar h1 { margin-top: 8px; color: #f2f6f5; font-family: 'Fredoka', sans-serif; font-size: clamp(28px, 4vw, 46px); font-weight: 500; letter-spacing: -.03em; }
 .topbar-identity { display: flex; align-items: center; gap: 8px; padding-bottom: 7px; }
+.topbar-privacy { display: flex; align-items: center; gap: 7px; padding-bottom: 7px; color: #6f8c92; font-size: 10px; letter-spacing: .12em; }
+.topbar-privacy svg { width: 14px; color: #68d8b4; }
 .identity-chip, .rank-chip, .role-badge { padding: 7px 10px; border: 1px solid rgba(142,171,178,.18); border-radius: 999px; color: #89a4a8; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .rank-chip { color: #e7c671; border-color: rgba(231,198,113,.28); }
 .numbers-grid { max-width: 1120px; margin: 0 auto 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
