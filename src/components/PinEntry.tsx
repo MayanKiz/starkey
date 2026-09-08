@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Heart, UserPlus, Delete } from 'lucide-react';
+import { Heart, UserPlus, Delete, Sparkles, ShieldCheck } from 'lucide-react';
 import { supabase, User } from '@/lib/supabase';
 
 interface PinEntryProps { onAccess: (user: User) => void; onCreateIdentity: () => void; }
@@ -28,9 +28,23 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
   };
 
   return (
-    <section className="app-shell flex min-h-full items-center justify-center px-5 py-8">
-      <div className="w-full max-w-sm text-center">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-pink-soft shadow-sm">
+    <section className="app-shell login-screen flex min-h-full items-center justify-center px-5 py-8">
+      <div className="login-visual text-left">
+        <div className="login-visual-grid" />
+        <div className="login-orb login-orb-one" />
+        <div className="login-orb login-orb-two" />
+        <div className="login-visual-content">
+          <div className="login-brand"><span className="login-brand-dot" /> SECRET CHAT</div>
+          <p className="login-kicker">PRIVATE • REAL-TIME • JUST YOU TWO</p>
+          <h2 className="login-visual-title">Your little<br /><span>world,</span> beautifully<br />connected.</h2>
+          <p className="login-visual-copy">A soft private corner for messages, heartbeats and the people who matter.</p>
+          <div className="login-feature-row"><span><Sparkles className="h-4 w-4" /> instant connection</span><span><ShieldCheck className="h-4 w-4" /> just for you</span></div>
+        </div>
+        <div className="login-visual-footer"><span>SECRET CHAT / 2026</span><span className="login-footer-line" /><span>MADE WITH CARE</span></div>
+      </div>
+      <div className="login-card-wrap w-full max-w-sm text-center">
+        <div className="login-card-glow" />
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-pink-soft shadow-sm login-logo">
           <Heart className="h-10 w-10 fill-[hsl(var(--pink))] text-[hsl(var(--pink))]" />
         </div>
         <p className="mb-1 text-sm font-semibold tracking-wide text-pink">just us, softly</p>
