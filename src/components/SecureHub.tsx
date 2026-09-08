@@ -11,7 +11,7 @@ interface SecureHubProps { currentUser: User; onBack: () => void; onDeleteAccoun
 const rankClass: Record<Rank, string> = { Leader: 'rank-leader', Guardian: 'rank-guardian', Member: 'rank-member', Newcomer: 'rank-newcomer' };
 const rankOrder: Rank[] = ['Leader', 'Guardian', 'Member', 'Newcomer'];
 const getRank = (user?: Partial<User> | null): Rank => user?.rank && rankOrder.includes(user.rank as Rank) ? user.rank as Rank : 'Member';
-const formatTime = (value: string) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const formatTime = (value: string) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
 const SecureHub = ({ currentUser, onBack, onDeleteAccount }: SecureHubProps) => {
   const [room, setRoom] = useState<Room>('community');
@@ -29,7 +29,7 @@ const SecureHub = ({ currentUser, onBack, onDeleteAccount }: SecureHubProps) => 
   const mapMessages = async (rows: Message[]) => {
     if (!rows.length) return [] as ChatMessage[];
     const ids = [...new Set(rows.map((row) => row.sender_id).filter(Boolean))] as string[];
-    const { data: users } = await supabase.from('users').select('id,nickname,rank').in('id', ids);
+    const { data: users } = await supabase.from('users').select('*').in('id', ids);
     const userMap = new Map((users ?? []).map((user) => [user.id, user as User]));
     return rows.map((row) => {
       const sender = row.sender_id ? userMap.get(row.sender_id) : undefined;
