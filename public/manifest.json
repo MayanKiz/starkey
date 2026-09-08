@@ -1,11 +1,11 @@
 {
-  "name": "Secret Chat",
-  "short_name": "Secret Chat",
-  "description": "A soft, private real-time chat for two people",
+  "name": "AKGEC Community",
+  "short_name": "AKGEC",
+  "description": "A private, members-only AKGEC community",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fff7fb",
-  "theme_color": "#f27eaa",
+  "background_color": "#071417",
+  "theme_color": "#071417",
   "orientation": "portrait",
   "icons": [
     {
