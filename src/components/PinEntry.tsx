@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Heart, UserPlus, Delete, Sparkles, ShieldCheck } from 'lucide-react';
 import { supabase, User } from '@/lib/supabase';
+import { hashPin } from '@/lib/security';
 
 interface PinEntryProps { onAccess: (user: User) => void; onCreateIdentity: () => void; }
 
@@ -13,7 +14,7 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
   useEffect(() => { if (pin.length === 6) void validatePin(pin); }, [pin]);
 
   const validatePin = async (value: string) => {
-    const { data } = await supabase.from('users').select('*').eq('login_pin', value).maybeSingle();
+    const { data } = await supabase.from('users').select('*').eq('login_pin', await hashPin(value)).maybeSingle();
     if (!data) {
       setError(true);
       window.setTimeout(() => { setPin(''); setError(false); }, 500);
