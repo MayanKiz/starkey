@@ -14,10 +14,10 @@ const Index = () => {
   useEffect(() => { registerServiceWorker(); }, []);
   const handleDeleteAccount = () => { setCurrentUser(null); setView('pin'); };
   return <main className="app-shell">
-    {view === 'pin' && <PinEntry onAccess={(user) => { setCurrentUser(user); setView('hub'); }} onCreateIdentity={() => setView('signup')} />}
+    {view === 'pin' && <PinEntry onAccess={(user) => { setCurrentUser(user); setView('hub'); }} onAdminAccess={() => setView('database')} onCreateIdentity={() => setView('signup')} />}
     {view === 'signup' && <CreateIdentity onBack={() => setView('pin')} onSuccess={() => setView('pin')} />}
-    {view === 'hub' && currentUser && <SecureHub currentUser={currentUser} onBack={() => { setCurrentUser(null); setView('pin'); }} onDeleteAccount={handleDeleteAccount} onOpenDatabase={() => setView('database')} />}
-    {view === 'database' && currentUser && <AdminDatabase onBack={() => setView('hub')} />}
+    {view === 'hub' && currentUser && <SecureHub currentUser={currentUser} onBack={() => { setCurrentUser(null); setView('pin'); }} onDeleteAccount={handleDeleteAccount} />}
+    {view === 'database' && <AdminDatabase onBack={() => setView('pin')} />}
   </main>;
 };
 export default Index;

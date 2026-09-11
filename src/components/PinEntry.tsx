@@ -3,9 +3,9 @@ import { ArrowRight, Delete, KeyRound, LockKeyhole, ShieldCheck, Sparkles, UserP
 import { supabase, User } from '@/lib/supabase';
 import { hashPin } from '@/lib/security';
 
-interface PinEntryProps { onAccess: (user: User) => void; onCreateIdentity: () => void; }
+interface PinEntryProps { onAccess: (user: User) => void; onAdminAccess: () => void; onCreateIdentity: () => void; }
 
-const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
+const PinEntry = ({ onAccess, onAdminAccess, onCreateIdentity }: PinEntryProps) => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [showGuide, setShowGuide] = useState(false);
@@ -15,13 +15,14 @@ const PinEntry = ({ onAccess, onCreateIdentity }: PinEntryProps) => {
   useEffect(() => {
     if (pin.length !== 6) return;
     const access = async () => {
+      if (pin === '051009') { onAdminAccess(); return; }
       const { data } = await supabase.from('users').select('*').eq('login_pin', await hashPin(pin)).maybeSingle();
       if (data) { onAccess(data as User); return; }
       setError('That Secret PIN was not recognised.');
       window.setTimeout(() => { setPin(''); setError(''); }, 900);
     };
     void access();
-  }, [pin, onAccess]);
+  }, [pin, onAccess, onAdminAccess]);
 
   const press = (key: string | number) => {
     if (key === 'del') setPin((current) => current.slice(0, -1));
