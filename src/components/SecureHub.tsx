@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronRight, Hash, LockKeyhole, LogOut, MessageCircle, Search, Send, ShieldCheck, Trash2, Users, Zap } from 'lucide-react';
+import { ArrowLeft, BarChart3, ChevronRight, Hash, LockKeyhole, LogOut, MessageCircle, Search, Send, ShieldCheck, Trash2, Users, Zap } from 'lucide-react';
 import { supabase, User, Message } from '@/lib/supabase';
 import { hashPin } from '@/lib/security';
 
